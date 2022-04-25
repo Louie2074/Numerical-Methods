@@ -2,12 +2,12 @@
 import io
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.interpolate import make_interp_spline, BSpline
+from scipy.interpolate import make_interp_spline
 import docx
 from cmath import cos, pi, sin, tan
 import numpy as np
 import math
-from scipy import integrate
+
 
 # library allows for microsoft docx export
 mydoc = docx.Document("./Doc1.docx")
@@ -111,8 +111,8 @@ def q2C():
 
 def q3A():
     def function(x): return tan(x-(math.pi/3))+4*cos(x**3)
-    approx = midpoint(0, 2.5, 1e-5, function)
-    plotG(approx, 1e-5, "Midpoint", True, 2.5)
+    approx = midpoint(0, 2.5, 0.1, function)
+    plotG(approx, 0.1, "Midpoint", True, 2.5)
 
 
 '''Question 3B of Midpoint method'''
@@ -120,9 +120,9 @@ def q3A():
 
 def q3B():
     def function(x): return sin(2*x)+cos(3*x)
-    approx1 = midpoint(0, 4*math.pi, 1e-5, function)
+    approx1 = midpoint(0, 4*math.pi, 0.1, function)
     approx2 = midpoint(0, 4*math.pi, 1, function)
-    plotG(approx1, 1e-5, "Midpoint", True, 4*math.pi)
+    plotG(approx1, 0.1, "Midpoint", True, 4*math.pi)
     plotG(approx2, 1, "Midpoint", True, 4*math.pi)
 
 
@@ -316,7 +316,7 @@ def trapezoid(start, stop, step, f, display=True):
     coords = {}
     try:
         for i in np.arange(float(start), float(stop), step):
-            coords[i] = f(i)
+            coords[i] = f(i).real
             integral += ((f(i)+f(i+step))/2)*step
         print("Integral is equal to: ", integral.real)
     # Throws an error message if there is an error in the calculations
@@ -343,7 +343,7 @@ def rightpoint(start, stop, step, f, display=True):
     coords = {}
     try:
         for i in np.arange(float(start), float(stop), step):
-            coords[i] = f(i)
+            coords[i] = f(i).real
             integral += f(i)*step
         print("Integral is equal to: ", integral.real)
     # Throws an error message if there is an error in the calculations
@@ -398,8 +398,11 @@ def plotG(dic, step, name, fill, max=None):
 
     # If the fill option is True then fills the area under the curve and plots x axis
     if fill:
+        for i in range(0, len(x)):
+            # create the trapezoids under the curve
+            plt.vlines(x=x[i], ymin=0, ymax=y[i])
         plt.fill_between(x, y, color='green', alpha=0.5)
-        plt.hlines(0, 0, max, color='red')
+        plt.hlines(0, 0, max, color='black')
 
     # Exports the graph into a microsoft word document
     figure = io.BytesIO()
@@ -442,10 +445,13 @@ def plotNewton(f, d, xn, iter):
     ax.yaxis.set_ticks_position('left')
     ax.set_xbound(-8, 8)
     ax.set_ybound(-8, 8)
+    
     # plots the function
     ax.plot(xnew, power_smooth, linewidth=3, color='red', label="F(x)")
+    
     # plots the tangent line
     ax.axline((xn, f(xn)), slope=d(xn), color='C0', label='Tangent')
+    
     # plots the location of current guess
     ax.plot(xn, f(xn), marker="o", color="green",
             label=f"Guess \n X: {f'{xn:.2f}'} \n Y: {f'{f(xn):.2f}'}")

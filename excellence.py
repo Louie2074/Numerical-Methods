@@ -20,29 +20,28 @@ def q2CExcellent():
 
 '''Excellent version of Q3A Midpoint method using Trapezoid method of integration'''
 def q3AExcellenceT():
-    def function(x): return tan(x-(math.pi/3))+4*cos(x**3)
-    approx = f.trapezoid(0, 2.5, 1e-5, function)
-    f.plotG(approx, 1e-5, "Trapezoid", True, 2.5)
+    def function(x): return tan(x-(math.pi/3))+4*cos(x**3).real
+    approx = f.trapezoid(0, 2.5, 0.1, function)
+    f.plotG(approx, 0.1, "Trapezoid", True, 2.5)
 
 
 '''Excellent version of Q3B Midpoint method using Trapezoid method of integration'''
 def q3BExcellenceT():
-   def function(x): return sin(2*x)+cos(3*x)
-   approx1 = f.trapezoid(0, 4*math.pi, 1e-5, function)
-   approx2 = f.trapezoid(0, 4*math.pi, 1, function)
-   f.plotG(approx1, 1e-5, "Trapezoid", True, 4*math.pi)
+   def function(x): return sin(2*x)+cos(3*x).real
+   approx1 = f.trapezoid(0, 4*math.pi, 0.01, function)
+   f.plotG(approx1, 0.1, "Trapezoid", True, 4*math.pi)
 
     
 '''Excellent version of Q3A Midpoint method using Right Endpoint method of integration'''
 def q3AExcellenceR():
-    def function(x): return tan(x-(math.pi/3))+4*cos(x**3)
-    approx = f.rightpoint(0, 2.5, 1e-5, function)
-    f.plotG(approx, 1e-5, "Right Endpoint", True, 2.5)
+    def function(x): return tan(x-(math.pi/3))+4*cos(x**3).real
+    approx = f.rightpoint(0, 2.5, 0.1, function)
+    f.plotG(approx, 0.1, "Right Endpoint", True, 2.5)
 
 
 '''Excellent version of Q3A Midpoint method using Right Endpoint method of integration'''
 def q3BExcellenceR():
-    def function(x): return sin(2*x)+cos(3*x)
-    approx1 = f.rightpoint(0, 4*math.pi, 1e-5, function)
-    approx2 = f.rightpoint(0, 4*math.pi, 1, function)
-    f.plotG(approx1, 1e-5, "Right Endpoint", True, 4*math.pi)
+    def function(x): return sin(2*x)+cos(3*x).real
+    approx1 = f.rightpoint(0, 4*math.pi, 0.01, function)
+    f.plotG(approx1, 0.1, "Right Endpoint", True, 4*math.pi)
+
