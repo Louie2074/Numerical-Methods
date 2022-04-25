@@ -1,8 +1,10 @@
+import docx
 from cmath import cos, pi, sin, tan
 import functions as f
 import numpy as np
 import math
 
+mydoc = docx.Document("./Doc1.docx")
 # A. Newton's Method
 def q1A():
     def function(x): return ((sin(x)/(x-1)**2)+5 *
@@ -23,7 +25,11 @@ def q1B():
                 [20*(x-6.7)**4,-1]]
     approx = f.newton_jacob([1.0, -2.0], function,
                             Derivative, 1e-6, False, 100)
-    f.toTable(approx)
+    tab = f.toTable(approx)
+    print(tab)
+    mydoc.add_paragraph(tab)
+    mydoc.save("./Doc1.docx")
+    
     
 def q1C():
     def function(xyz): 
@@ -54,28 +60,30 @@ def q1D():
 def q2A():
     def function(x,y): return (-4*sin((pi/6)*math.log(y))*(x-1)).real
     approx = f.euler(0,4,2,0.1,function,False)
-    f.plotG2(approx,0.1)
+    f.plotG2(approx,0.1,"Eulers")
     
-# def q2B():
-    # def function
+def q2B():
+    def function(x,y,z): return -sin(z*(2*x+y))
+    def function2(x,y): return math.e**(-0.05*x)*cos(4*y)
+    f.euler2(0,7,-1,0,0.01,function,function2,False)
+        
 
     
 def q2C():
     def function(x,y): return (y+x**2-math.e**(1.5*y)).real
     approx1 = f.euler(0,10,0,1e-5,function,False)
     approx2 = f.euler(0, 10, 0, 0.05, function, False)
-    f.plotG2(approx1,1e-5)
-    f.plotG2(approx2,0.05)
+    f.plotG2(approx1, 1e-5, "Eulers")
+    f.plotG2(approx2, 0.05, "Eulers")
     
 def q3A():
     def function(x): return tan(x-(math.pi/3))+4*cos(x**3)
     approx = f.midpoint(0, 2.5, 1e-5, function)
-    f.plotG3(approx,1e-5)
+    f.plotG3(approx,1e-5,2.5)
     
 def q3B():
     def function(x): return sin(2*x)+cos(3*x)
     approx1 = f.midpoint(0,4*math.pi,1e-5,function) 
-    approx2 = f.midpoint(0, 4*math.pi, 1e-5, function)
-
-
-q3A()
+    approx2 = f.midpoint(0, 4*math.pi, 1, function)
+    f.plotG3(approx1, 1e-5, 4*math.pi)
+    f.plotG3(approx2, 1, 4*math.pi)
