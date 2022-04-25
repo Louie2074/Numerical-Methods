@@ -1,66 +1,48 @@
 import functions as f
 import math
-import docx
 from cmath import cos,sin,tan,pi
 
 
-# Question 2 B. Euler's Method excellence using Midpoint Method as other Runge Katta
-
-mydoc = docx.Document("./Doc1.docx")
-
+'''Excellent version of Q2A Eulers method using Midpoint method of runge kutta'''
 def q2AExcellent():
-    def function(x, y): return (-4*sin((pi/6)*math.log(y))*(x-1)).real
-    approx = f.midpointRK(0, 4, 2, 0.1, function)
-    f.plotG2(approx, 0.1,"Midpoint")
+  def function(x, y): return (-4*sin((pi/6)*math.log(y))*(x-1)).real
+  approx = f.midpointRungeKutta(0, 4,2,1e-5,function)
+  f.plotG(approx, 0.1, "Eulers",False,None)
 
-
-
+'''Excellent version of Q2C Eulers method using Midpoint method of runge kutta'''
 def q2CExcellent():
     def function(x, y): return (y+x**2-math.e**(1.5*y)).real
-    approx1 = f.midpointRK(0, 10, 0, 1e-5, function)
-    approx2 = f.midpointRK(0, 10, 0, 0.05, function)
-    f.plotG2(approx1, 1e-5, "Midpoint")
-    f.plotG2(approx2, 0.05, "Midpoint")
+    approx1 = f.midpointRungeKutta(0, 10, 0, 1e-5, function)
+    approx2 = f.midpointRungeKutta(0, 10, 0, 0.05, function)
+    f.plotG(approx1, 1e-5, "Eulers",False,None)
+    f.plotG(approx2, 0.05, "Eulers",False,None)
 
 
-
-
-# Question 2 C. Midpoint Method excellence
-
-# Trapezoid method part a
-def q3CExcellenceAT():
+'''Excellent version of Q3A Midpoint method using Trapezoid method of integration'''
+def q3AExcellenceT():
     def function(x): return tan(x-(math.pi/3))+4*cos(x**3)
     approx = f.trapezoid(0, 2.5, 1e-5, function)
-    f.plotG3(approx, 1e-5, 2.5,"Trapezoid")
+    f.plotG(approx, 1e-5, "Trapezoid", True, 2.5)
 
-# Trapezoid method part b
-def q3CExcellenceBT():
-    def function(x): return sin(2*x)+cos(3*x)
-    approx1 = f.trapezoid(0,4*math.pi,1e-5,function)
-    approx2 = f.trapezoid(0, 4*math.pi, 1, function)
-    f.plotG3(approx1, 1e-5, 4*math.pi, "Trapezoid")
+
+'''Excellent version of Q3B Midpoint method using Trapezoid method of integration'''
+def q3BExcellenceT():
+   def function(x): return sin(2*x)+cos(3*x)
+   approx1 = f.trapezoid(0, 4*math.pi, 1e-5, function)
+   approx2 = f.trapezoid(0, 4*math.pi, 1, function)
+   f.plotG(approx1, 1e-5, "Trapezoid", True, 4*math.pi)
+
     
-
-# Right Endpoint method part a    
-def q3CExcellenceAR():
+'''Excellent version of Q3A Midpoint method using Right Endpoint method of integration'''
+def q3AExcellenceR():
     def function(x): return tan(x-(math.pi/3))+4*cos(x**3)
     approx = f.rightpoint(0, 2.5, 1e-5, function)
-    f.plotG3(approx, 1e-5, 2.5,"Right Endpoint")
+    f.plotG(approx, 1e-5, "Right Endpoint", True, 2.5)
 
-# Right Endpoint method part b
-def q3CExcellenceBR():
+
+'''Excellent version of Q3A Midpoint method using Right Endpoint method of integration'''
+def q3BExcellenceR():
     def function(x): return sin(2*x)+cos(3*x)
-    approx1 = f.trapezoid(0, 4*math.pi, 1e-5, function)
-    approx2 = f.trapezoid(0, 4*math.pi, 1, function)
-    f.plotG3(approx1, 1e-5, 4*math.pi, "Right Endpoint")
-    
-       
-def runAllExcel():
-    q2AExcellent()
-    q2CExcellent()
-    q3CExcellenceAT()
-    q3CExcellenceBT()
-    q3CExcellenceAR()
-    q3CExcellenceBR()
-
-runAllExcel()
+    approx1 = f.rightpoint(0, 4*math.pi, 1e-5, function)
+    approx2 = f.rightpoint(0, 4*math.pi, 1, function)
+    f.plotG(approx1, 1e-5, "Right Endpoint", True, 4*math.pi)

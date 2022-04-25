@@ -1,5 +1,4 @@
 
-from cProfile import run
 import io
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,8 +7,13 @@ import docx
 from cmath import cos, pi, sin, tan
 import numpy as np
 import math
+from scipy import integrate
 
+# library allows for microsoft docx export
 mydoc = docx.Document("./Doc1.docx")
+
+
+'''Question 1A of newtons method'''
 
 
 def q1A():
@@ -18,6 +22,9 @@ def q1A():
     def Derivative(x): return (-10*x*cos(x**2/2)*sin(x**2/2) -
                                ((2*sin(x))/(x-1)**3)+((cos(x))/(x-1)**2)+3).real
     approx = newton(-1, function, Derivative, 1e-6, True, 100)
+
+
+'''Question 1B of newtons method'''
 
 
 def q1B():
@@ -30,12 +37,15 @@ def q1B():
         x, y = xy
         return [[3*x*cos(1.5*x)+2*sin(1.5*x), -1],
                 [20*(x-6.7)**4, -1]]
-    approx = newton_jacob([1.0, -2.0], function,
-                            Derivative, 1e-6, False, 100)
+    approx = newton([1.0, -2.0], function,
+                    Derivative, 1e-6, True, 100,)
     tab = toTable(approx)
     print(tab)
     mydoc.add_paragraph(tab)
     mydoc.save("./Doc1.docx")
+
+
+'''Question 1C of newtons method'''
 
 
 def q1C():
@@ -51,8 +61,11 @@ def q1C():
                 [-1, 3, -1],
                 [1, 0, -1]]
 
-    approx = newton_jacob([1.0, 1.0, 1.0], function,
-                            Derivative, 1e-6, False, 100)
+    approx = newton([1.0, 1.0, 1.0], function,
+                    Derivative, 1e-6, False, 100)
+
+
+'''Question 1D of newtons method'''
 
 
 def q1D():
@@ -64,223 +77,351 @@ def q1D():
     approx4 = newton(-0.5, function, Derivative, 1e-6, True, 100)
 
 
-# B. Euler's Method
+'''Question 2A of Eulers method'''
+
+
 def q2A():
     def function(x, y): return (-4*sin((pi/6)*math.log(y))*(x-1)).real
-    approx = euler(0, 4, 2, 0.1, function, False)
-    plotG2(approx, 0.1, "Eulers")
+    approx = euler(0, 4, 2, 0.1, function, True, None, None)
+    plotG(approx, 0.1, "Eulers", False, None)
+
+
+'''Question 2B of Eulers method'''
 
 
 def q2B():
     def function(x, y, z): return -sin(z*(2*x+y))
     def function2(x, y): return math.e**(-0.05*x)*cos(4*y)
-    euler2(0, 7, -1, 0, 0.01, function, function2, False)
+    euler(0, 7, 0, 1e-5, function, False, function2, -1)
+
+
+'''Question 2C of Eulers method'''
 
 
 def q2C():
     def function(x, y): return (y+x**2-math.e**(1.5*y)).real
-    approx1 = euler(0, 10, 0, 1e-5, function, False)
-    approx2 = euler(0, 10, 0, 0.05, function, False)
-    plotG2(approx1, 1e-5, "Eulers")
-    plotG2(approx2, 0.05, "Eulers")
+    approx1 = euler(0, 10, 0, 1e-5, function, True, None, None)
+    approx2 = euler(0, 10, 0, 0.05, function, True, None, None)
+    plotG(approx1, 1e-5, "Eulers", False, None)
+    plotG(approx2, 0.05, "Eulers", False, None)
+
+
+'''Question 3A of Midpoint method'''
 
 
 def q3A():
     def function(x): return tan(x-(math.pi/3))+4*cos(x**3)
     approx = midpoint(0, 2.5, 1e-5, function)
-    plotG3(approx, 1e-5, 2.5,"Midpoint")
+    plotG(approx, 1e-5, "Midpoint", True, 2.5)
+
+
+'''Question 3B of Midpoint method'''
 
 
 def q3B():
     def function(x): return sin(2*x)+cos(3*x)
     approx1 = midpoint(0, 4*math.pi, 1e-5, function)
     approx2 = midpoint(0, 4*math.pi, 1, function)
-    plotG3(approx1, 1e-5, 4*math.pi, "Midpoint")
-    plotG3(approx2, 1, 4*math.pi, "Midpoint")
+    plotG(approx1, 1e-5, "Midpoint", True, 4*math.pi)
+    plotG(approx2, 1, "Midpoint", True, 4*math.pi)
 
 
-def newton(x0, f, d, epsilon, plot, max_iter=100):
+def newton(x0, f, d, epsilon, display=True, max_iter=100):
+    """Newtons Method for solving algebraic equations
+
+    Args:
+        x0: Initial Guess
+        f: function to be solved
+        d: derivative of function to be solved
+        epsilon: Accuracy threshold of answer
+        display (bool, optional): Optional argument if user wants details of calculation. Defaults to True.
+        max_iter (int, optional): Optional argument if user wants to alter the amount of iterations. Defaults to 100.
+
+    Returns:
+        coords: x and y values to be tabulated or graphed
+    """
+
     xn = x0
     coords = {}
-    for i in range(0, max_iter):
-        fxn = f(xn)
-        coords[i] = [xn.real, fxn.real]
-        if plot == True:
-            plotG(f, d, xn, i+1)
-        if abs(fxn) < epsilon:
-            print(
-                f'Initial Guess: {x0}, Found solution after {i+1} iterations. The answer is {xn}')
-            if plot == False:
-                toTable(coords)
-            return coords
-        Dfxn = d(xn)
-        if Dfxn == 0:
-            print('Derivative is 0. No solution found.')
-            return coords
-        xn = xn - (fxn*(Dfxn**-1))
 
+    # Non jacobian Newtons method
+    if not isinstance(x0, list):
+        for i in range(0, max_iter):
+            fxn = f(xn)
+            coords[i] = [xn.real, fxn.real]
+            # If user wants the details then plot
+            if display:
+                plotNewton(f, d, xn, i+1)
+            # If the answer is accurate enough then stop
+            if abs(fxn) < epsilon:
+                print(
+                    f'Initial Guess: {x0}, Found solution after {i+1} iterations. The answer is {xn}')
+                return coords if display else None
+            Dfxn = d(xn)
+            # If the derivitive is 0 then quit
+            if Dfxn == 0:
+                print('Derivative is 0. No solution found.')
+                return coords if display else None
+            xn = xn - (fxn*(Dfxn**-1))
+
+    # Jacobian Newtons method
+    else:
+        for i in range(max_iter):
+
+            Jacobian = np.array(d(xn))
+            NonJacobian = np.array(f(xn))
+
+            diff = np.linalg.solve(Jacobian, -NonJacobian)
+            coords[i] = [xn[0].real, xn[1].real]
+            xn = xn + diff
+
+            # If the answer is accurate enough then stop
+            if np.linalg.norm(diff) < epsilon:
+                print(f'{[i.real for i in xn]}')
+                return coords if display else None
+
+    # If max iterations have been reached and no answer was found
     print('No solution found.')
-    return coords
+    # Returns the values to be graphed if the user specifies else returns none
+    return coords if display else None
 
 
-def newton_jacob(guess, f, d, epsilon, plot, max_iter=100):
-    xn = guess
-    coords = {}
-    for i in range(max_iter):
-        # Solve J(xn)*( xn+1 - xn ) = -F(xn):
-        J = np.array(d(xn))
-        F = np.array(f(xn))
+def euler(x0, n, y0, h, f, display=True, f2=None, z0=None):
+    """Eulers method for solving differential equations
 
-        diff = np.linalg.solve(J, -F)
-        coords[i] = [xn[0].real, xn[1].real]
-        xn = xn + diff
+    Args:
+        x0: Starting X value
+        n: End X value
+        y0: Initial starting condition
+        h: Step size
+        f: function to be solved
+        display (bool, optional): Optional argument if user wants details of calculation. Defaults to True.
+        f2 (optional): Optional function argument if using to solve system of equation. Defaults to None.
+        z0 (optional): Optional function starting condition argument if using to solve system of equations. Defaults to None.
 
-        # Stop condition:
-        if np.linalg.norm(diff) < epsilon:
-            print(f'{[i.real for i in xn]}')
-            break
-
-    else:  # only if the for loop end 'naturally'
-        print('not converged')
-
-    return coords
-
-
-def euler(x0, n, y0, h, f, plot):
-    # Calculating step size
-    yn = y0
-    coords = {}
-    count = 0
-    for i in np.arange(float(x0), float(n), h):
-        coords[i] = yn.real
-        new = yn+(h*f(i, yn))
-        count += 1
-        yn = new
-    print(
-        f'Initial Guess: {x0}, Found solution after {count} iterations. The answer is {yn}')
-    return coords
-
-
-def euler2(x0, n, y0,z0, h, f,f2, plot):
-    # Calculating step size
+    Returns:
+        coords: x and y values to be tabulated or graphed
+    """
     yn = y0
     zn = z0
-    lastX = 0
+    xn = x0
+    coords = {}
     count = 0
-    for i in np.arange(float(x0), float(n), h):
-      
-        
-        newZ = zn+(h*f2(i, zn))
-       
-        newY = yn+(h*f(i, yn,zn))
-        count += 1
-        zn = newZ
-        yn = newY
-        lastX = i
-    print(
-        f'Initial Guess: {x0}, Found solution after {count} iterations. The answer is {lastX.real,yn.real,zn.real}')
-    
+
+    try:
+        for i in np.arange(float(x0), float(n), h):
+            # Not a system of equations
+            if(f2 == None):
+                coords[i] = yn.real
+                new = yn+(h*f(i, yn))
+                count += 1
+                yn = new
+            # Used if input is a system
+            else:
+                yn = yn+(h*f(i, yn, zn))
+                zn = zn+(h*f2(i, yn))
+                xn = i
+                count += 1
+    # Throws an error message if there is an error in the calculations
+    except:
+        print("An error occurred in the calculations, please check the inputs")
+
+    # if input is not a system then output the y value, else output xyz values
+    if(f2 == None):
+        print(
+            f'Initial Guess: {x0}, Found solution after {count} iterations. The answer is {yn}')
+    else:
+        print(
+            f'Initial Guess: {x0}, Found solution after {count} iterations. The answer is {xn.real,yn.real,zn.real}')
+    # Returns the values to be graphed if the user specifies else returns none
+    return coords if display else None
 
 
+def midpoint(start, stop, step, f, display=True):
+    """Midpoint rule for integrating an equation
 
-def midpoint(start, stop, step, f):
+    Args:
+        start: Starting X value
+        stop: End X value
+        step: Step size
+        f: function to be solved
+        display (bool, optional): Optional argument if user wants details of calculation. Defaults to True.
+
+    Returns:
+         coords: x and y values to be tabulated or graphed
+    """
     integral = 0
     coords = {}
-    for i in np.arange(float(start), float(stop), step):
-        coords[i] = f(i).real
-        integral += f(((i+step)+i)/2)*step
-    print("Integral is equal to: ", integral.real)
-    return coords
+    try:
+        for i in np.arange(float(start), float(stop), step):
+            coords[i] = f(i).real
+            integral += f(((i+step)+i)/2)*step
+        print("Integral is equal to: ", integral.real)
+    # Throws an error message if there is an error in the calculations
+    except:
+        print("An error occurred in the calculations, please check the inputs")
+    # Returns the values to be graphed if the user specifies else returns none
+    return coords if display else None
 
 
-def midpointRK(x0, n, y0, h, f):
+def midpointRungeKutta(x0, n, y0, h, f, display=True):
+    """Midpoint Method for solving differential equations
+
+    Args:
+        x0: Starting X Value
+        n: Ending X Value
+        y0: Initial Starting Condition
+        h: Step Size
+        f: function to be solved
+        display (bool, optional): Optional argument if user wants details of calculation. Defaults to True.
+
+    Returns:
+       coords: x and y values to be tabulated or graphed
+    """
     yn = y0
     count = 0
     coords = {}
-    for i in np.arange(float(x0), float(n), h):
-        coords[i] = yn.real
-        k1 = f(i,yn)
-        k2 = f(i+(h/2), yn+(k1*h/2))
-        count += 1
-        yn = yn+(k2*h)
-    print(
-        f'Initial Guess: {x0}, Found solution after {count} iterations. The answer is {yn}')
-    return coords
+    try:
+        for i in np.arange(float(x0), float(n), h):
+            coords[i] = yn.real
+            k1 = f(i, yn)
+            k2 = f(i+(h/2), yn+(k1*h/2))
+            count += 1
+            yn = yn+(k2*h)
+
+        print(
+            f'Initial Guess: {x0}, Found solution after {count} iterations. The answer is {yn}')
+
+    # Throws an error message if there is an error in the calculations
+    except:
+        print("An error occurred in the calculations, please check the inputs")
+    # Returns the values to be graphed if the user specifies else returns none
+    return coords if display else None
 
 
-def trapezoid(start, stop, step, f):
+def trapezoid(start, stop, step, f, display=True):
+    """Trapezoid method for integrating an equation
+
+    Args:
+        start: Starting X Value
+        stop: Ending X Value
+        step: Step size
+        f: function to be passed
+        display (bool, optional): Optional argument if user wants details of calculation. Defaults to True.
+
+    Returns:
+        coords: x and y values to be tabulated or graphed
+    """
     integral = 0
     coords = {}
-    for i in np.arange(float(start), float(stop), step):
-        coords[i] = f(i)
-        integral += ((f(i)+f(i+step))/2)*step
-    print("Integral is equal to: ", integral.real)
-    return coords
+    try:
+        for i in np.arange(float(start), float(stop), step):
+            coords[i] = f(i)
+            integral += ((f(i)+f(i+step))/2)*step
+        print("Integral is equal to: ", integral.real)
+    # Throws an error message if there is an error in the calculations
+    except:
+        print("An error occurred in the calculations, please check the inputs")
+    # Returns the values to be graphed if the user specifies else returns none
+    return coords if display else None
 
-def rightpoint(start, stop, step, f):
+
+def rightpoint(start, stop, step, f, display=True):
+    """Rightpoint method for integrating an equation
+
+    Args:
+        start: Starting X Value
+        stop: Ending X Value
+        step: Step Size
+        f: function to be solved
+        display (bool, optional):  Optional argument if user wants details of calculation. Defaults to True.
+
+    Returns:
+        coords: x and y values to be tabulated or graphed
+    """
     integral = 0
     coords = {}
-    for i in np.arange(float(start), float(stop), step):
-        coords[i] = f(i)
-        integral += f(i)*step
-    print("Integral is equal to: ", integral.real)
-    return coords
+    try:
+        for i in np.arange(float(start), float(stop), step):
+            coords[i] = f(i)
+            integral += f(i)*step
+        print("Integral is equal to: ", integral.real)
+    # Throws an error message if there is an error in the calculations
+    except:
+        print("An error occurred in the calculations, please check the inputs")
+    # Returns the values to be graphed if the user specifies else returns none
+    return coords if display else None
+
 
 def toTable(coords):
+    """Converts coordinate values into a tabular form
+
+    Args:
+        coords (_type_): Dictionary of coordinate values
+
+    Returns:
+        str: Table of values in a string
+    """
+
     str = ""
-    str+=" "
-    str+="{:<8} {:<15} {:<10}".format('Iteration', 'X', 'Y')
+    str += " "
+    str += "{:<8} {:<15} {:<10}".format('Iteration', 'X', 'Y')
     for k, v in coords.items():
         x, y = v
-        str+="\n"
-        str+="{:<8} {:<15} {:<10}".format(k, x, y)
-    str+=" "
+        str += "\n"
+        str += "{:<8} {:<15} {:<10}".format(k, x, y)
+    str += " "
     return str
 
 
-def plotG2(dic, step,name):
-    myList = dic.items()
+def plotG(dic, step, name, fill, max=None):
+    """Plots end graph using the return values of calculations
 
+    Args:
+        dic (_type_): Dictionary of coordinate values
+        step (_type_): Step Size
+        name (_type_): Name of function
+        fill (_type_): User option to fill areas under graph
+        max (_type_, optional): Max x value of axis. Defaults to None.
+    """
+
+    # Sorts the x and y values of coordinates
+    myList = dic.items()
     myList = sorted(myList)
     x, y = zip(*myList)
 
+    # Plots the values
     plt.plot(x, y)
     plt.title(f"{name} method with step size of {step}")
     plt.xlabel("X")
     plt.ylabel("Y")
+
+    # If the fill option is True then fills the area under the curve and plots x axis
+    if fill:
+        plt.fill_between(x, y, color='green', alpha=0.5)
+        plt.hlines(0, 0, max, color='red')
+
+    # Exports the graph into a microsoft word document
     figure = io.BytesIO()
     plt.savefig(figure, format='png')
     figure.seek(0)
-
     mydoc.add_picture(figure)
     mydoc.save('./Doc1.docx')
     plt.close()
 
 
-def plotG3(dic, step,max, name):
-    myList = dic.items()
+def plotNewton(f, d, xn, iter):
+    """Graphing method for newtons method that plots the function after every iteration
 
-    myList = sorted(myList)
-    x, y = zip(*myList)
-
-    plt.plot(x, y)
-    plt.hlines(0, 0, max, color='red')
-    plt.fill_between(x, y, color='green', alpha=0.5)
-    plt.title(f"{name} method with step size of {step}")
-    plt.xlabel("X")
-    plt.ylabel("Y")
-    figure = io.BytesIO()
-    plt.savefig(figure, format='png')
-    figure.seek(0)
-
-    mydoc.add_picture(figure)
-    mydoc.save('./Doc1.docx')
-    plt.close()
-
-def plotG(f, d, xn, iter):
+    Args:
+        f: function to be graphed
+        d: derivative of function to be graphed
+        xn: Initial Guess
+        iter: current iteration
+    """
+    # Sets up x and y values to be graphed and smooths the values out
     x = np.arange(-5, 5, 0.5)
     xnew = np.linspace(x.min(), x.max(), 300)
-
     y = []
     for i in x:
         try:
@@ -288,45 +429,35 @@ def plotG(f, d, xn, iter):
         except:
             y.append(10)
     spl = make_interp_spline(x, y, k=3)
-
     power_smooth = spl(xnew)
+
+    # Sets up figure and axes of the graph
     fig = plt.figure(1)
     ax = fig.add_subplot(111)
-
     ax.spines['left'].set_position('zero')
     ax.spines['right'].set_color('none')
     ax.spines['bottom'].set_position('zero')
     ax.spines['top'].set_color('none')
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    ax.plot(xnew, power_smooth, linewidth=3, color='red', label="F(x)")
-
-    ax.axline((xn, f(xn)), slope=d(xn), color='C0', label='Tangent')
-    ax.plot(xn, f(xn), marker="o", color="green",
-            label=f"Guess \n X: {f'{xn:.2f}'} \n Y: {f'{f(xn):.2f}'}")
     ax.set_xbound(-8, 8)
     ax.set_ybound(-8, 8)
+    # plots the function
+    ax.plot(xnew, power_smooth, linewidth=3, color='red', label="F(x)")
+    # plots the tangent line
+    ax.axline((xn, f(xn)), slope=d(xn), color='C0', label='Tangent')
+    # plots the location of current guess
+    ax.plot(xn, f(xn), marker="o", color="green",
+            label=f"Guess \n X: {f'{xn:.2f}'} \n Y: {f'{f(xn):.2f}'}")
+
+    # Title and legend of graph
     plt.title(f"Current Iteration: {iter}")
     plt.legend(loc="upper left")
-    figure = io.BytesIO()
-    plt.savefig(figure,format='png')
-    figure.seek(0)
 
+    # Exports the graph into a microsoft word document
+    figure = io.BytesIO()
+    plt.savefig(figure, format='png')
+    figure.seek(0)
     mydoc.add_picture(figure)
     mydoc.save('./Doc1.docx')
     plt.close()
-
-
-    
-def runAll():
-    q1A()
-    q1B()
-    q1C()
-    q1D()
-    q2A()
-    q2B()
-    q2C()
-    q3A()
-    q3B()
-
-runAll()
